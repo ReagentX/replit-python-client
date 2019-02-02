@@ -45,6 +45,7 @@ class ReplIt():
 
 
     def create_data(self) -> dict:
+        '''Creates the GraphQL query for a request object'''
         return {
             "operationName": "userByUsername",
             "variables": {
