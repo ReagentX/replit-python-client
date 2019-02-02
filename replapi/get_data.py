@@ -38,6 +38,7 @@ class ReplIt():
             return False
         return True
 
+
     def create_headers(self) -> dict:
         '''Create headers for the request'''
         return {'referrer': f'{USER_ROOT}{self.username}'}
