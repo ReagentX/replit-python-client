@@ -25,7 +25,7 @@ class ReplIt():
         this_data = json.loads(repls.text)
         return [item for item in this_data['data']['user']['repls']['items']]
 
-    
+
     def get_urls(self) -> list:
         '''Returns only the urls in the JSON data we collect''' 
         return [item['url'] for item in self.data]
