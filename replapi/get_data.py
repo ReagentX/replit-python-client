@@ -3,7 +3,7 @@ import json
 import requests
 import requests_cache
 from datetime import timedelta
-from api_data import API_ROOT, USER_ROOT, DOWNLOAD_ROOT
+from .api_data import API_ROOT, USER_ROOT, DOWNLOAD_ROOT
 
 
 # Setup cache for requests
@@ -12,8 +12,9 @@ requests_cache.install_cache(expire_after=timedelta(hours=24))
 
 class ReplIt():
 
-    def __init__(self, username):
+    def __init__(self, username, number_to_retreive=9999):
         self.username = username  # Omit the @
+        self.count = number_to_retreive  # Number of entries to get in GraphQL query
         self.data = self.setup()
 
 
@@ -48,13 +49,8 @@ class ReplIt():
             "variables": {
                 "username": self.username,
                 "pinnedReplsFirst": 'true',
-                "count": 9999
+                "count": self.count
                 # "after": "MjAxOS0wMS0zMFQyMjo1Mzo0NC4zMTha"
             },
             "query": '''query userByUsername($username: String!, $pinnedReplsFirst: Boolean, $count: Int, $after: String, $before: String, $direction: String, $order: String) {\n  user: userByUsername(username: $username) {\n    id\n    username\n    firstName\n    displayName\n    isLoggedIn\n    repls: publicRepls(pinnedReplsFirst: $pinnedReplsFirst, count: $count, after: $after, before: $before, direction: $direction, order: $order) {\n      items {\n        id\n        timeCreated\n        pinnedToProfile\n        ...ProfileReplItemRepl\n        __typename\n      }\n      pageInfo {\n        hasNextPage\n        nextCursor\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment ProfileReplItemRepl on Repl {\n  id\n  ...ReplItemBaseRepl\n  __typename\n}\n\nfragment ReplItemBaseRepl on Repl {\n  id\n  url\n  title\n  languageDisplayName\n  timeCreated\n  __typename\n}\n'''
         }
-
-
-r = ReplIt('reagentx')
-print(r.data)
-# print(r.get_urls())
