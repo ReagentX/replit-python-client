@@ -3,7 +3,7 @@ import json
 import requests
 import requests_cache
 from datetime import timedelta
-from api_data import API_ROOT, USER_ROOT
+from api_data import API_ROOT, USER_ROOT, DOWNLOAD_ROOT
 
 
 # Setup cache for requests
@@ -29,6 +29,13 @@ class ReplIt():
         '''Returns only the urls in the JSON data we collect''' 
         return [item['url'] for item in self.data]
 
+
+    def download_zip(self, url) -> bool:
+        '''Receives a URL from the GraphQL JSON; downloads the file and returns True on success'''
+        dl = requests.get(f'{DOWNLOAD_ROOT}/{url}.zip')
+        if dl.status_code != requests.codes.ok:
+            return False
+        return True
 
     def create_headers(self) -> dict:
         '''Create headers for the request'''
