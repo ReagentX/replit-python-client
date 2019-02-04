@@ -2,3 +2,4 @@ venv/*
 *.pyc
 replit_api.egg-info/*
 replapi/__pycache__/api_data.cpython-37.pyc
+cache.sqlite
