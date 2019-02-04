@@ -1,11 +1,13 @@
 import os
 import re
+import sys
 import json
 import shutil
 import zipfile
 import requests
 import requests_cache
 from datetime import timedelta
+from multiprocessing.dummy import Pool as ThreadPool
 from .api_data import API_ROOT, USER_ROOT, DOWNLOAD_ROOT
 
 
@@ -17,15 +19,15 @@ class ReplIt():
 
     def __init__(self, username, number_to_retreive=9999):
         self.username = username  # Omit the @
-        self.create_user_folder()
+        self.create_folder(self.username)
         self.count = number_to_retreive  # Number of entries to get in GraphQL query
         self.data = self.setup()
 
 
-    def create_user_folder(self) -> None:
+    def create_folder(self, name) -> None:
         '''Create user folder to download files into'''
-        if not os.path.exists(self.username):
-            os.makedirs(self.username)
+        if not os.path.exists(name):
+            os.makedirs(name)
 
 
     def setup(self) -> list:
@@ -41,20 +43,53 @@ class ReplIt():
         return [item['url'] for item in self.data]
 
 
-    def download_zip(self, url) -> bool:
-        '''Receives a URL from the GraphQL JSON; downloads the file and returns True on success'''
-        dl = requests.get(f'{DOWNLOAD_ROOT}{url}.zip', stream=True)
+    def download_all(self, threads=32) -> None:
+        '''Handles multiprocessing using ThreadPool; sends items from a list to a function and gets the results as a list'''
+        pool = ThreadPool(threads)
+        lst = self.get_urls()
+        print(f"Downloading {len(lst)} items using {self.download_zip} in {threads} processes.")
+        result = (pool.imap_unordered(self.download_zip, lst))
+        pool.close()
+
+        # Display progress as the scraper runs its processes
+        while (len(lst) > 1):
+            completed = result._index
+            # Break out of the loop if all tasks are done or if there is only one task
+            if (completed == len(lst)):
+                sys.stdout.flush()
+                sys.stdout.write('\r' + "")
+                sys.stdout.flush()
+                break
+            # Avoid a ZeroDivisionError
+            if completed > 0:
+                sys.stdout.flush()
+                sys.stdout.write('\r' + f"{completed/len(lst)*100:.0f}% done. {len(lst)-completed} left. ")
+                sys.stdout.flush()
+            sys.stdout.flush()
+        pool.join()
+        return list(result)
+
+
+    def download_zip(self, slug) -> bool:
+        '''Receives a slug from the GraphQL JSON; downloads the file and returns the slug if the download fails'''
+        dl = requests.get(f'{DOWNLOAD_ROOT}{slug}.zip', stream=True)
         if dl.status_code == requests.codes.ok:
-            filepath = f'{self.username}/{url.split("/")[-1]}'
-            with open(filepath, 'wb') as f:
+            filepath = f'{self.username}/{slug.split("/")[-1]}'
+            self.create_folder(filepath)
+            with open(filepath + '/z.zip', 'wb') as f:
                 shutil.copyfileobj(dl.raw, f)
+            # Unzip and remove
+            self.unzip(filepath)
+            os.remove(filepath + '/z.zip')
+            return None
+        return slug
 
 
     def unzip(self, path: str) -> None:
         '''Unzip file passed as the `path` string'''
-        zip_ref = zipfile.ZipFile(path_to_zip_file, 'r')
-        zip_ref.extractall(directory_to_extract_to)
-        zip_ref.close()
+        z = zipfile.ZipFile(path + '/z.zip', 'r')
+        z.extractall(path)
+        z.close()
 
 
     def create_headers(self) -> dict:
