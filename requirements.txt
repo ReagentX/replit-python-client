@@ -1,0 +1,7 @@
+certifi==2018.11.29
+chardet==3.0.4
+idna==2.8
+-e git+https://github.com/ReagentX/replit-python-client.git@64e2e2afb3177dcc9df5eca6701055e6b5628d8c#egg=replit_api
+requests==2.21.0
+requests-cache==0.4.13
+urllib3==1.24.1
