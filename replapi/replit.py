@@ -12,12 +12,12 @@ from .api_data import API_ROOT, USER_ROOT, DOWNLOAD_ROOT
 
 
 # Setup cache for requests
-requests_cache.install_cache(expire_after=timedelta(hours=24))
+requests_cache.install_cache(expire_after=timedelta(hours=2))
 
 
 class ReplIt():
 
-    def __init__(self, username, number_to_retreive=9999):
+    def __init__(self, username, number_to_retreive=999):
         self.username = username  # Omit the @
         self.create_folder(self.username)
         self.count = number_to_retreive  # Number of entries to get in GraphQL query
