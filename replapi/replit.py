@@ -1,15 +1,16 @@
+import json
 import os
 import re
-import sys
-import json
 import shutil
+import sys
 import zipfile
-import requests
-import requests_cache
 from datetime import timedelta
 from multiprocessing.dummy import Pool as ThreadPool
-from .api_data import API_ROOT, USER_ROOT, DOWNLOAD_ROOT
 
+import requests
+import requests_cache
+
+from .api_data import API_ROOT, DOWNLOAD_ROOT, USER_ROOT
 
 # Setup cache for requests
 requests_cache.install_cache(expire_after=timedelta(hours=2))
